@@ -1,0 +1,22 @@
+<!-- 手刻GET -->
+<script>
+    function doSubmit(){
+        let account = document.getElementById('account').value;
+        //index.php?account=value
+        let url = 'index.php?account=' + account;
+        location.href = url;
+    }
+</script>
+
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    帳號: 
+    <input type="text" id="account" name="account" />
+    <input type="submit" value="送出" onclick="doSubmit()">
+    
+</body>
+</html>
