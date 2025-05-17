@@ -1,9 +1,11 @@
 <?php
 
-echo $_POST["account"];
-echo "<br>";
-echo $_POST["password"];
+// echo $_POST["account"];
+// echo "<br>";
+// echo $_POST["password"];
 
+$account = $_POST["account"];
+$password = $_POST["password"];
 
 //MySQL相關資訊
 $db_host = "127.0.0.1";
@@ -20,7 +22,7 @@ $pdo = new PDO($dsn, $db_user, $db_pass);
 //---------------------------------------------------
 
 //建立SQL
-$sql = "INSERT INTO member(Account, PWD, CreateDate) VALUES ('".$_POST["account"]."', '".$_POST["password"]."', NOW())";
+$sql = "INSERT INTO member(Account, PWD, CreateDate) VALUES ('$account', '$password', NOW())";
 
 //執行
 $affectedRow = $pdo->exec($sql);
