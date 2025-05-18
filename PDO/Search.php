@@ -7,7 +7,7 @@
     $account = $_POST["account"];
 
     //bindValue() - 問號表示
-    $sql = "SELECT * FROM member WHERE Account = ?";
+    $sql = "SELECT * FROM member WHERE Account like ?";
 
     $statement = $pdo->prepare($sql); 
     $statement->bindValue(1, $account);
