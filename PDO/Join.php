@@ -4,35 +4,29 @@
 // echo "<br>";
 // echo $_POST["password"];
 
-$account = $_POST["account"];
-$password = $_POST["password"];
-
-//MySQL相關資訊
-$db_host = "127.0.0.1";
-$db_user = "root";
-$db_pass = "password";
-$db_select = "pdo";
-
-//建立資料庫連線物件
-$dsn = "mysql:host=".$db_host.";dbname=".$db_select.";charset=utf8";
-
-//建立PDO物件，並放入指定的相關資料
-$pdo = new PDO($dsn, $db_user, $db_pass);
+include("conn.php");
 
 //---------------------------------------------------
 
+$account = htmlspecialchars($_POST["account"]);
+$password = htmlentities($_POST["password"]);
+
 //建立SQL
-$sql = "INSERT INTO member(Account, PWD, CreateDate) VALUES ('$account', '$password', NOW())";
+$sql = "INSERT INTO member(Account, PWD, CreateDate) VALUES (?, ?, NOW())";
 
 //執行
-$affectedRow = $pdo->exec($sql);
+// $affectedRow = $pdo->exec($sql);
+$statement = $pdo->prepare($sql); 
+$statement->bindValue(1, $account);
+$statement->bindValue(2, $password);
+$affectedRow = $statement->execute();
+
 if($affectedRow > 0){
-        echo "新增成功!";
+        //echo "新增成功!";
+        //PHP轉址到原本PDO範例中的Select.php
+        header("Location: Select.php");
 }else{
         echo "新增失敗!";
 }
-
-//PHP轉址到原本PDO範例中的Select.php
-header("Location: Select.php");
 
 ?>
