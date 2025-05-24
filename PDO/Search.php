@@ -6,18 +6,20 @@
 
     $account = $_POST["account"];
 
+    $searchAccount = "%" . $account . "%"; 
+
     //bindValue() - 問號表示
     $sql = "SELECT * FROM member WHERE Account like ?";
 
     $statement = $pdo->prepare($sql); 
-    $statement->bindValue(1, $account);
+    $statement->bindValue(1, $searchAccount);
     $statement->execute();
 
     //抓出全部且依照順序封裝成一個二維陣列
     $data = $statement->fetchAll();
 
     if(count($data) > 0){
-        echo "會員資料:";
+        echo "查詢結果:";
         echo "<br>";
         
         //將二維陣列取出顯示其值
