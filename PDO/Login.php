@@ -44,7 +44,12 @@
        $data = $statement->fetchAll();
 
        if(count($data) > 0){
-            echo "登入成功";
+          //   echo "登入成功";
+          session_start();
+          $_SESSION["memberID"] = $account;
+          //redirect 導向(踢去) welcome頁面
+          header("Location: Welcome.php");
+
        }else{
             echo "帳號或密碼錯誤";
        }
