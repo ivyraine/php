@@ -1,8 +1,8 @@
 <?php
-// header("Access-Control-Allow-Origin: *");
-// header("Access-Control-Allow-Headers: Content-Type");
-// header("Access-Control-Allow-Methods: POST, OPTIONS");
-// header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Content-Type: application/json");
 
 // 1. 建立連線
 $db_host = "127.0.0.1";
@@ -43,6 +43,9 @@ if (empty($member['email']) || empty($member['password'])) {
 
 // 4. 寫入資料
 try {
+
+    $hashed_password = password_hash($member['password'], PASSWORD_DEFAULT);
+
     $sql = '
         INSERT INTO MEMBER (name, email, password, phone, birthday, gender)
         VALUES (:name, :email, :password, :phone, :birthday, :gender)
@@ -50,7 +53,8 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':name', $member['name']);
     $stmt->bindValue(':email', $member['email']);
-    $stmt->bindValue(':password', $member['password']);
+    // $stmt->bindValue(':password', $member['password']);
+    $stmt->bindValue(':password', $hashed_password);
     $stmt->bindValue(':phone', $member['phone']);
     $stmt->bindValue(':birthday', $member['birthday']);
     $stmt->bindValue(':gender', $member['gender']);
