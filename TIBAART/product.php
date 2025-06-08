@@ -1,8 +1,4 @@
 <?php
-// 啟用錯誤顯示（僅用於除錯，正式環境應關閉）
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // 設置 CORS 和 Content-Type
 header("Access-Control-Allow-Origin: *");
@@ -11,7 +7,6 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json; charset=utf-8");
 
 $db_host = "127.0.0.1";
-// $db_host = "localhost";
 $db_user = "root";
 $db_pass = "password";
 $db_select = "TIBAART";

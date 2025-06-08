@@ -1,13 +1,10 @@
 <?php
-// 設置 CORS 標頭，允許來自前端的跨域請求
-// 請注意：在生產環境中，建議將 '*' 替換為你的前端網域，例如 'http://localhost:8080'
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS"); // 允許的 HTTP 方法
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-header('Content-Type: application/json'); // 告訴客戶端回傳的是 JSON 格式
+header('Content-Type: application/json'); 
 
 $db_host = "127.0.0.1";
-// $db_host = "localhost";
 $db_user = "root";
 $db_pass = "password";
 $db_select = "TIBAART";
@@ -21,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ---------------------------
-// 1. 檢查請求方法是否為 POST
+// 1. 檢查請求方法: POST
 // ---------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
@@ -35,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // 2. 獲取並解析前端發送的 JSON 資料
 // ---------------------------
 $json_data = file_get_contents('php://input'); // 讀取原始的請求主體
-$data = json_decode($json_data, true); // 將 JSON 字串解碼為 PHP 關聯陣列
+$data = json_decode($json_data, true); // JSON 字串解碼
 
 // 檢查 JSON 是否成功解析
 if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
@@ -51,15 +48,15 @@ if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
 // 3. 提取並驗證接收到的資料
 // ---------------------------
 // 從 $data 陣列中提取訂單資訊
-// 使用 ?? 運算符提供預設值，避免 undefined index 錯誤
 $orderInfo = $data['orderInfo'] ?? null;
+$carrier = $data['carrier'] ?? null;
 $recipientInfo = $data['recipientInfo'] ?? null;
 $cartItems = $data['cartItems'] ?? [];
 $totalPrice = $data['totalPrice'] ?? 0;
-$shippingFee = $data['shippingFee'] ?? 0;
+$shipping_fee = $data['shippingFee'] ?? 0;
 $discount = $data['discount'] ?? 0;
 
-// 簡單的資料驗證範例：檢查必要欄位是否存在
+// 資料驗證
 if (empty($orderInfo) || empty($recipientInfo) || !is_array($cartItems) || count($cartItems) === 0 || $totalPrice <= 0) {
     echo json_encode([
         'success' => false,
@@ -68,47 +65,136 @@ if (empty($orderInfo) || empty($recipientInfo) || !is_array($cartItems) || count
     exit();
 }
 
-// 你可以進一步驗證每個子欄位的資料格式和內容
-// 例如：
-// if (!isset($recipientInfo['name']) || empty($recipientInfo['name'])) { ... }
-
 // ---------------------------
-// 4. 處理訂單邏輯 (示範部分)
+// 4. 處理訂單邏輯 (資料庫操作)
 // ---------------------------
-// 在這裡，你會執行實際的訂單處理邏輯，例如：
-// - 將訂單資料寫入資料庫 (例如 orders 表、order_items 表)
-// - 扣除庫存
-// - 處理支付（如果這部分也在這裡）
-// - 發送確認郵件
-// - 生成唯一的訂單號等
+$order_success = false;
+$response_message = '';
+$order_id = null; // 初始化為 null
 
-$order_success = true; // 假設訂單處理成功，實際應根據資料庫操作結果來判斷
-$order_id = 'ORD' . uniqid(); // 生成一個簡單的模擬訂單 ID
-
-// 實際的資料庫操作範例（請替換為你的資料庫連線和操作）
-/*
 try {
-    // 假設你已經設定了資料庫連線 $pdo
-    $stmt = $pdo->prepare("INSERT INTO orders (order_id, total_price, status, created_at, ...) VALUES (?, ?, ?, NOW(), ...)");
-    $stmt->execute([$order_id, $totalPrice, 'pending', ...]);
-    $lastInsertOrderId = $pdo->lastInsertId(); // 如果 orders 表有自增 ID
-
-    // 插入訂單商品明細
+    // 建立資料庫連線
+    $pdo = new PDO($dsn, $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // 開始事務
+    $pdo->beginTransaction();
+    
+    // 生成訂單編號 (格式: ORD + 時間戳 + 隨機數)
+    $order_number = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    
+    // 計算訂單總金額
+    $subtotal_amount = 0;
     foreach ($cartItems as $item) {
-        $stmt_item = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, ...) VALUES (?, ?, ?, ?, ...)");
-        $stmt_item->execute([$lastInsertOrderId, $item['id'], $item['quantity'], $item['price']]);
+        $qty = $item['quantity'] ?? 0;
+        $price = $item['price'] ?? 0;
+        $subtotal_amount += $qty * $price;
     }
+    
+    $total_amount = $subtotal_amount + $shipping_fee;
+    
+    
+    // 插入訂單資料到 ORDERS 表
+    $stmt_order = $pdo->prepare("
+        INSERT INTO ORDERS (
+            order_number, 
+            member_id, 
+            order_date, 
+            delivery_address, 
+            contact_name, 
+            contact_phone, 
+            carrier,
+            shipping_fee, 
+            total_amount, 
+            status, 
+            payment_status,
+            payment_method,
+            notes
+        ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    
+    // 準備訂單資料
+    $member_id = $orderInfo['member_id'] ?? null;
+    $delivery_address = $recipientInfo['address'] ?? '';
+    $contact_name = $recipientInfo['name'] ?? '';
+    $contact_phone = $recipientInfo['tel'] ?? '';
+    $carrier = $orderInfo['carrier'] ?? '';
 
-    // 如果所有操作都成功
+    $status = 'pending'; // 使用新的狀態值
+    $payment_status = 'unpaid';
+    $payment_method = $orderInfo['payment_method'] ?? null;
+    $notes = $orderInfo['notes'] ?? null;
+    
+    $stmt_order->execute([
+        $order_number,
+        $member_id,
+        $delivery_address,
+        $contact_name,
+        $contact_phone,
+        $carrier,
+        $shipping_fee,
+        $total_amount,
+        $status,
+        $payment_status,
+        $payment_method,
+        $notes
+    ]);
+    
+    $lastInsertOrderId = $pdo->lastInsertId();
+    
+    // 插入訂單商品明細到 ORDER_ITEMS 表
+    $stmt_item = $pdo->prepare("
+        INSERT INTO ORDER_ITEMS (
+            order_id, 
+            product_id, 
+            product_name, 
+            unit_price, 
+            quantity, 
+            subtotal
+        ) VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    
+    foreach ($cartItems as $item) {
+        $product_id = $item['id'] ?? null;
+        $product_name = $item['name'] ?? ''; // 商品名稱 (冗余資料)
+        $unit_price = $item['price'] ?? 0;
+        $quantity = $item['quantity'] ?? 0;
+        $subtotal = $quantity * $unit_price;
+        
+        if ($product_id && $quantity > 0) {
+            $stmt_item->execute([
+                $lastInsertOrderId,
+                $product_id,
+                $product_name,
+                $unit_price,
+                $quantity,
+                $subtotal
+            ]);
+        }
+    }
+    
+    // 提交事務
+    $pdo->commit();
+    
     $order_success = true;
-
+    $order_id = $order_number; // 使用人類可讀的訂單編號
+    $response_message = '訂單建立成功，訂單編號：' . $order_number;
+    
 } catch (PDOException $e) {
+    // 回滾事務
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    
     $order_success = false;
-    error_log("Database error: " . $e->getMessage()); // 記錄到伺服器錯誤日誌
-    $response_message = '資料庫操作失敗，請稍後再試。';
+    $response_message = '訂單建立失敗，請稍後再試';
+    error_log("Database error: " . $e->getMessage());
+    
+    // 開發環境可以顯示詳細錯誤，正式環境建議隱藏
+    if (defined('DEBUG') && DEBUG === true) {
+        $response_message .= '：' . $e->getMessage();
+    }
 }
-*/
-
 // ---------------------------
 // 5. 回傳 JSON 回應給前端
 // ---------------------------
@@ -122,7 +208,7 @@ if ($order_success) {
     // 如果處理失敗（例如資料庫錯誤或資料驗證失敗）
     echo json_encode([
         'success' => false,
-        'message' => $response_message ?? '訂單處理失敗，請檢查資料或稍後再試。'
+        'message' => $response_message ?: '訂單處理失敗，請檢查資料或稍後再試。'
     ]);
 }
 
