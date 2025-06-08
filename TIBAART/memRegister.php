@@ -17,12 +17,16 @@ $db_select = "TIBAART";
 // $db_select = "tibamefe_tjd101g2";
 
 
-$dsn = "mysql:host=$db_host;dbname=$db_select;charset=utf8";
+$dsn = "mysql:host=$db_host;dbname=$db_select;charset=utf8mb4";
+// $dsn = "mysql:host=$db_host;dbname=$db_select;charset=utf8";
+
+$options = [
+  PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+];
 
 try {
-    $pdo = new PDO($dsn, $db_user, $db_pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
+    $pdo = new PDO($dsn, $db_user, $db_pass, $options);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => '資料庫連線失敗: ' . $e->getMessage()]);
     exit;
@@ -70,10 +74,16 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    // 例如信箱重複可能會導致 SQL error
-    echo json_encode([
-        'success' => false,
-        'message' => 'SQL 錯誤：' . $e->getMessage()
-    ]);
+    if ($e->getCode() == 23000) {
+        echo json_encode([
+            'success' => false,
+            'message' => '信箱已被註冊'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'SQL 錯誤：' . $e->getMessage()
+        ]);
+    }
     exit;
 }
