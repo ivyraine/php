@@ -100,7 +100,7 @@ try {
             order_number, 
             member_id, 
             order_date, 
-            delivery_address, 
+            address, 
             contact_name, 
             contact_phone, 
             carrier,
@@ -108,14 +108,13 @@ try {
             total_amount, 
             status, 
             payment_status,
-            payment_method,
-            notes
-        ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            payment_method
+        ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     
     // 準備訂單資料
     $member_id = $orderInfo['member_id'] ?? null;
-    $delivery_address = $recipientInfo['address'] ?? '';
+    $address = $recipientInfo['address'] ?? '';
     $contact_name = $recipientInfo['name'] ?? '';
     $contact_phone = $recipientInfo['tel'] ?? '';
     $carrier = $orderInfo['carrier'] ?? '';
@@ -123,12 +122,11 @@ try {
     $status = 'pending'; // 使用新的狀態值
     $payment_status = 'unpaid';
     $payment_method = $orderInfo['payment_method'] ?? null;
-    $notes = $orderInfo['notes'] ?? null;
     
     $stmt_order->execute([
         $order_number,
         $member_id,
-        $delivery_address,
+        $address,
         $contact_name,
         $contact_phone,
         $carrier,
@@ -136,15 +134,14 @@ try {
         $total_amount,
         $status,
         $payment_status,
-        $payment_method,
-        $notes
+        $payment_method
     ]);
     
     $lastInsertOrderId = $pdo->lastInsertId();
     
-    // 插入訂單商品明細到 ORDER_ITEMS 表
+    // 插入訂單商品明細到 ORDER_DETAIL 表
     $stmt_item = $pdo->prepare("
-        INSERT INTO ORDER_ITEMS (
+        INSERT INTO ORDER_DETAIL (
             order_id, 
             product_id, 
             product_name, 
