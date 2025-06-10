@@ -80,8 +80,8 @@ try {
     // 開始事務
     $pdo->beginTransaction();
     
-    // 生成訂單編號 (格式: ORD + 時間戳 + 隨機數)
-    $order_number = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    // 生成訂單編號 (格式: 時間戳 + 隨機數)
+    $order_number = date('ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
     
     // 計算訂單總金額
     $subtotal_amount = 0;
