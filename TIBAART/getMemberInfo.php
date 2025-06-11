@@ -46,9 +46,9 @@ if (!isset($member['id'])) {
 }
 
 if ($type === 'general') {
-    $stmt = $pdo->prepare('SELECT id, email, name, phone, birthday, gender FROM MEMBER WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT id, email, name, img, phone, birthday, gender FROM MEMBER WHERE id = :id');
 } else if ($type === 'artist') {
-    $stmt = $pdo->prepare('SELECT id, account, email, name, phone, birthday, gender, bank_account FROM ARTIST WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT id, account, email, name, img, phone, birthday, gender, bank_account FROM ARTIST WHERE id = :id');
 } else {
     echo json_encode(['success' => false, 'message' => '無效的會員類型']);
     exit;
@@ -64,6 +64,7 @@ try {
         'id' => base64_encode($user['id']),
         'email' => base64_encode($user['email']),
         'name' => $user['name'],
+        'img' => $user['img'],
         'phone' => base64_encode($user['phone']),
         'birthday' => base64_encode($user['birthday']),
         'gender' => base64_encode($user['gender']),

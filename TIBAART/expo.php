@@ -37,8 +37,8 @@ try {
             // 前端需要的額外屬性
             'titleZh' => $item['name'],
             'img' => $item['cover'],
-            'to' => '/ExpoArea' . $item['id'],  // 路由路徑
-            'className' => 'item' . ($index + 1),  // CSS 類名
+            'to' => '/front/ExpoArea/${item.id}',  // 路由路徑
+            'className' => 'grid div' . ($index + 1),  // CSS 類名
             'side' => ($index % 2 === 0) ? 'left' : 'right'  // 左右交替
         ];
     }
