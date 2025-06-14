@@ -1,23 +1,12 @@
 <?php
 
-// 設置 CORS 和 Content-Type
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Content-Type: application/json; charset=utf-8");
-
-$db_host = "127.0.0.1";
-$db_user = "root";
-$db_pass = "password";
-$db_select = "TIBAART";
-
-$dsn = "mysql:host=$db_host;dbname=$db_select;charset=utf8mb4";
+include('cross_domain.php');
+include ('conn.php');
 
 try {
-    $pdo = new PDO($dsn, $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // 查詢 product 表，只取得狀態為啟用的商品
+    // 查 product
     $stmt = $pdo->query("SELECT 
         id,
         name,
@@ -43,7 +32,7 @@ try {
         exit;
     }
 
-    // 轉換資料格式
+    // 轉換格式
     $formattedProducts = array_map(function($product) {
         return [
             'id' => (int)$product['id'],
@@ -67,7 +56,5 @@ try {
         'message' => '資料庫連線失敗: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
-
-// echo json_encode(["status" => "success"]);
 
 ?>
