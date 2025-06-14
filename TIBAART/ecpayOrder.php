@@ -44,7 +44,7 @@ $data = json_decode($json_data, true);
 // 從 $data 陣列中提取訂單資訊
 $order_number = $data['order_number'];
 
-// $order_number = "2506103116"; // 您可以將此替換為您的測試訂單號
+// $order_number = "2506103116";
 
 
 // 連接資料庫並查詢訂單
@@ -95,7 +95,7 @@ try {
 
 
 
-// 組訂單資
+// 組訂單資訊
 $order = [
     'MerchantID' => $merchantID,
     'MerchantTradeNo' => $order_number, // 使用我們的訂單編號
@@ -105,12 +105,12 @@ $order = [
     'TradeDesc' => '緯藝訂單',
     'ItemName' => '緯藝商品',
      // 'ReturnURL' => 'https://tibamef2e.com/tjd101/g2/ecpayOrder.php',
-    'ReturnURL' => 'http://localhost/TIBAART/ecpayOrder.php', // 後端回調 URL
+    'ReturnURL' => 'http://localhost/TIBAART/orderReturn.php', // 後端回調 URL
     // 'ClientBackURL' => 'https://tibamef2e.com/tjd101/g2/front/OrderConfirm', // 前端返回 URL
     'ClientBackURL' => 'http://localhost:5173/tjd101/g2/front/OrderConfirm', // 前端返回 URL
     'ChoosePayment' => 'Credit',
     'EncryptType' => 1,
-    'Email' => $contact_phone . '@example.com'
+    'Email' => $email
 ];
 // echo "<pre>";
 // print_r($order);

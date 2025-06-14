@@ -17,6 +17,11 @@ $db_user = "root";
 $db_pass = "password";
 $db_select = "TIBAART";
 
+// $db_host = "127.0.0.1";
+// $db_user = "tibamefe_since2021";
+// $db_pass = "vwRBSb.j&K#E";
+// $db_select = "tibamefe_tjd101g2";
+
 date_default_timezone_set('Asia/Taipei');
 
 // 綠界設定（測試環境）
@@ -25,7 +30,7 @@ $hashIV = 'EkRm7iFT261dpevs';
 $merchantID = '3002607';  // '2000132';
 
 // 接收並驗證前端資料
-$artist_id = $_POST['artist_id'] ?? '未命名展覽';  // 前端傳來的字串 ID
+// $expoN = $_POST['expoN'] ?? '';  // 前端傳來的字串 ID (固定資料測試用)
 $d_name = $_POST['d_name'] ?? '贊助者';
 $email = $_POST['email'] ?? 'no@email.com';
 $amount = $_POST['amount'] ?? 0;
@@ -33,17 +38,11 @@ $amount = $_POST['amount'] ?? 0;
 // =====================================================================
 
 // 4. 展覽資料對應（與前端保持一致）
-$expo_data = [
-  'expo1' => ['id' => 1, 'name' => '《 靜界焰光 》'],
-  'expo2' => ['id' => 2, 'name' => '《 雪白世界 》'],
-  'expo3' => ['id' => 3, 'name' => '《 白陽落櫻 》'],
-  'expo4' => ['id' => 4, 'name' => '《 撕裂極光 》']
-];
-
-$expo_key = $_POST['artist_id'] ?? '';
-$expo_id   = $expo_data[$expo_key]['id'] ?? 0;
-$expo_name = $expo_data[$expo_key]['name'] ?? '未知展覽';
-
+$expo_id = isset($_POST['expoN']) ? intval($_POST['expoN']) : 0;
+if ($expo_id <= 0) {  // 如果 expo_id 是 0 或負數（前端沒送資料或是送錯）
+    echo json_encode(['error' => '無效的展覽 ID']);
+    exit;
+}
 
 try {
     // 5. 連接資料庫
@@ -94,7 +93,24 @@ try {
         }
     }
 
-    // 8. 查出對應的 member_id（用 email 查）
+    // 8-1 查出對應的 展覽名稱 與 artist_id
+    $expo_name = '';
+    $artist_id_db = 0;
+
+    $stmt = $mysqli->prepare("SELECT name, artist_id FROM EXPO WHERE id = ?");
+    $stmt->bind_param("i", $expo_id);
+    $stmt->execute();
+    $stmt->bind_result($expo_name_fetch, $artist_id_fetch);
+    if ($stmt->fetch()) {
+        $expo_name = $expo_name_fetch;
+        $artist_id_db = $artist_id_fetch;
+    } else {
+        echo json_encode(['error' => '查無該展覽']);
+        exit;
+    }
+    $stmt->close();
+
+    // 8-2 查出對應的 member_id（用 email 查）
     $member_id = null;  // 預設為 null
     $stmt = $mysqli->prepare("SELECT id FROM MEMBER WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -104,19 +120,6 @@ try {
         $member_id = $member_id_fetch;
     }
     $stmt->close();
-
-    // 9. 查出對應的 artist_id（用 EXPO.id 查）
-    $artist_id_db = 0;
-    if ($expo_id > 0) {
-        $stmt = $mysqli->prepare("SELECT artist_id FROM EXPO WHERE id = ?");
-        $stmt->bind_param("i", $expo_id);
-        $stmt->execute();
-        $stmt->bind_result($artist_id_fetch);
-        if($stmt->fetch()) {
-            $artist_id_db = $artist_id_fetch;
-        }
-        $stmt->close();
-    }
 
     // 10. 儲存訂單到資料庫 (寫入 DONATE 資料表)
     $share = 10;
@@ -170,9 +173,9 @@ $order = [
     'TotalAmount' => (int)$amount, // 使用者實際輸入的金額
     'TradeDesc' => '緯藝TibaArt贊助', // . $expo_name, // 交易描述（必填）
     'ItemName' =>   $expo_name .' 贊助藝術家 ',  //          // 商品名稱（可加上 # 結尾）改為從前端取得的商品名稱字串
-    // 'ReturnURL' => 'https://tibamef2e.com/tjd101/g2/return.php',
+    // 'ReturnURL' => 'https://tibamef2e.com/tjd101/g2/api/returnDonate.php',
     'ReturnURL' => 'http://localhost/test2/returndonate.php',
-    'ClientBackURL' => 'https://tibamef2e.com/tjd101/g2/', // 使用者完成付款後會回到這頁
+    'ClientBackURL' => 'https://tibamef2e.com/tjd101/g2/front', // 使用者完成付款後會回到這頁
     'ChoosePayment' => 'Credit',
     'EncryptType' => 1,
     'Email' => $email

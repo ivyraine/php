@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 
-$host = 'localhost';
+$host = '127.0.0.1';
 $db   = 'TIBAART';
 $user = 'root';
 $pass = 'password';  // 請改為你的實際密碼

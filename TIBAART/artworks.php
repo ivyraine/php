@@ -1,9 +1,13 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD']==='OPTIONS') {
+  http_response_code(200);
+  exit;
+}
 
 $host = '127.0.0.1';
 $db   = 'TIBAART';
@@ -20,21 +24,31 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 
-    // 獲取藝術家 ID
-    $artistId = $_GET['id'] ?? null;
+    // 獲取展覽 ID
+    $expoId = $_GET['expo_id'] ?? null;
     
-    if (!$artistId) {
-        throw new Exception('藝術家 ID 不能為空');
+    if (!$expoId) {
+        throw new Exception('展覽 ID 不能為空');
     }
 
-    // 查詢特定藝術家資料
-    $stmt = $pdo->prepare("SELECT * FROM ARTIST WHERE id = ?");
-    $stmt->execute([$artistId]);
-    $data = $stmt->fetch();
+    // 查詢該展覽的所有作品
+    // 假設你有一個 ARTWORK 表，並且有 expo_id 欄位關聯到展覽
+    $stmt = $pdo->prepare("SELECT
+                        AW.*,          -- 選取 ARTWORK 表的所有欄位
+                        E.name AS expo_name -- 選取展覽名稱
+                        FROM
+                        EXPO_ARTWORK AS EA
+                        JOIN
+                        ARTWORK AS AW ON EA.artwork_id = AW.id
+                        JOIN
+                        EXPO AS E ON EA.expo_id = E.id
+                        WHERE
+                        EA.expo_id = :expo_id ORDER BY id;");
 
-    if (!$data) {
-        throw new Exception('找不到對應的藝術家資料');
-    }
+   $stmt->bindValue(':expo_id', $expoId, PDO::PARAM_INT);
+
+    $stmt->execute();
+    $data = $stmt->fetchAll();
 
     echo json_encode([
         "success" => true,

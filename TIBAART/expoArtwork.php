@@ -1,9 +1,13 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD']==='OPTIONS') {
+  http_response_code(200);
+  exit;
+}
 
 $host = '127.0.0.1';
 $db   = 'TIBAART';
@@ -20,20 +24,31 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 
-    // 獲取藝術家 ID
-    $artistId = $_GET['id'] ?? null;
+    // 獲取作品 ID
+    $artworkId = $_GET['id'] ?? null;
     
-    if (!$artistId) {
-        throw new Exception('藝術家 ID 不能為空');
+    if (!$artworkId) {
+        throw new Exception('作品 ID 不能為空');
     }
 
-    // 查詢特定藝術家資料
-    $stmt = $pdo->prepare("SELECT * FROM ARTIST WHERE id = ?");
-    $stmt->execute([$artistId]);
+    // 查詢單一作品的詳細資料
+    $stmt = $pdo->prepare("SELECT 
+                        AW.*,
+                        E.name AS expo_name,
+                        E.id AS expo_id
+                        FROM 
+                        ARTWORK AS AW
+                        LEFT JOIN EXPO_ARTWORK AS EA ON AW.id = EA.artwork_id
+                        LEFT JOIN EXPO AS E ON EA.expo_id = E.id
+                        WHERE 
+                        AW.id = :artwork_id");
+
+    $stmt->bindValue(':artwork_id', $artworkId, PDO::PARAM_INT);
+    $stmt->execute();
     $data = $stmt->fetch();
 
     if (!$data) {
-        throw new Exception('找不到對應的藝術家資料');
+        throw new Exception('找不到指定的作品');
     }
 
     echo json_encode([
