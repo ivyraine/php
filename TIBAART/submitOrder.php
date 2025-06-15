@@ -53,8 +53,7 @@ $response_message = '';
 $order_id = null; // 初始化為 null
 
 try {
-    // 資料庫連線
-    $pdo = new PDO($dsn, $db_user, $db_pass);
+    // 錯誤處理模式
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $pdo->beginTransaction();

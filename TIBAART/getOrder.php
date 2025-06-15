@@ -3,23 +3,6 @@
 include('cross_domain.php');
 include ('conn.php');
 
-// header("Access-Control-Allow-Origin: *");
-// header("Access-Control-Allow-Methods: GET, OPTIONS");
-// header("Access-Control-Allow-Headers: Content-Type, Authorization");
-// header('Content-Type: application/json');
-
-// $db_host = "127.0.0.1";
-// $db_user = "root";
-// $db_pass = "password";
-// $db_select = "TIBAART";
-
-// $dsn = "mysql:host=$db_host;dbname=$db_select;charset=utf8mb4";
-
-// if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-//     http_response_code(200);
-//     exit();
-// }
-
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     echo json_encode([
         'success' => false,
