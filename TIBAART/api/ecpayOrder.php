@@ -27,8 +27,8 @@ $order_number = $data['order_number'];
 
 // 連資料庫
 try {
-    $pdo = new PDO($dsn, $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // $pdo = new PDO($dsn, $db_user, $db_pass);
+    // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $stmt = $pdo->prepare("SELECT order_number, total_amount, contact_name, contact_phone, payment_method FROM ORDERS WHERE order_number = ?");
     $stmt->execute([$order_number]);
@@ -72,8 +72,8 @@ $order = [
     'ItemName' => $item_name_string,
      // 'ReturnURL' => 'https://tibamef2e.com/tjd101/g2/ecpayOrder.php',
     'ReturnURL' => 'http://localhost/TIBAART/orderReturn.php', // 後端回調 URL
-    // 'ClientBackURL' => 'https://tibamef2e.com/tjd101/g2/front/OrderConfirm', // 前端返回 URL
-    'ClientBackURL' => 'http://localhost:5173/tjd101/g2/front/OrderConfirm', // 前端返回 URL
+    'ClientBackURL' => 'https://tibamef2e.com/tjd101/g2/front/OrderConfirm', // 前端返回 URL
+    // 'ClientBackURL' => 'http://localhost:5173/tjd101/g2/front/OrderConfirm', // 前端返回 URL
     'ChoosePayment' => 'Credit',
     'EncryptType' => 1,
     'Email' => $contact_phone.'@example.com'

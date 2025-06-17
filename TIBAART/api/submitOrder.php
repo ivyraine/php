@@ -54,7 +54,7 @@ $order_id = null; // 初始化為 null
 
 try {
     // 錯誤處理模式
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $pdo->beginTransaction();
     

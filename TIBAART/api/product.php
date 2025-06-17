@@ -4,7 +4,7 @@ include('cross_domain.php');
 include ('conn.php');
 
 try {
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // 查 product
     $stmt = $pdo->query("SELECT 
@@ -17,7 +17,7 @@ try {
         stock,
         updated,
         status
-    FROM product 
+    FROM PRODUCT 
     WHERE status = 1 
     ORDER BY RAND()");
     
