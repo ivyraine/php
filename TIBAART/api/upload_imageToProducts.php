@@ -4,17 +4,16 @@ include('cross_domain.php');
 include ('conn.php');
         
 //---------------------------------------------------
-// 上傳圖片至 expos 的資料夾
+// 上傳圖片至 products 的資料夾
 if (!isset($_FILES['img'])) {
     echo json_encode(['success' => false, 'message' => '缺少圖片']);
     exit;
 }
 
 
-$uploadDir = __DIR__ . '/upload/expos/';
+$uploadDir = __DIR__ . '/upload/products/';
 
-// 網站可訪問的路徑，用於資料庫與前端顯示
-$uploadPathForDB = '/upload/expos/'; 
+$uploadPathForDB = '/upload/products/'; 
 
 $allowedExts = ['jpg', 'jpeg', 'png'];
 $ext = pathinfo($_FILES['img']['name'], PATHINFO_EXTENSION);
