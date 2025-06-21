@@ -9,10 +9,6 @@ $line_client_secret = '5b739e47716172d61706444a063fe13a';
 $line_redirect_uri = 'http://localhost:5173/tjd101/g2/front/LineCallback'; 
 // $line_redirect_uri = 'https://tibamef2e.com/tjd101/g2/front/LineCallback'; 
 
-// $line_client_id = $_ENV['VITE_LINE_CLIENT_ID']; 
-// $line_client_secret = $_ENV['VITE_LINE_CLIENT_SECRET']; 
-// $line_redirect_uri = $_ENV['VITE_LINE_REDIRECT_URI'];
-
 // 取得前端傳來的 code 與 redirect_uri
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
@@ -93,7 +89,7 @@ try {
             'success' => true,
             'message' => 'LINE 會員登入成功！',
             'member_info' => [
-                'id' => $member['id'],
+                'id' => base64_encode($member['id']), // 確保 ID 經過編碼
                 'name' => $member['name'],
                 'email' => $member['email'],
                 'type' => ($member['per'] == 0) ? 'artist' : 'general',
@@ -115,7 +111,7 @@ try {
             'success' => true,
             'message' => 'LINE 會員註冊並登入成功！',
             'member_info' => [
-                'id' => $new_id,
+                'id' => base64_encode($new_id), // 確保 ID 經過編碼
                 'name' => $line_display_name,
                 'email' => $line_email,
                 'type' => 'general',
